@@ -21,17 +21,19 @@ import wishful_framework as wishful_module
 from wishful_framework.classes import exceptions
 from functional_split import Functional_split
 
+#for setting the environmental variable with the path to the openairinterface root folder.
+OPENAIR_5G_PATH=os.environ['OAI_5G_PATH']
 
-my_path_enb = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/"
+my_path_enb = OPENAIR_5G_PATH+"/targets/PROJECTS/GENERIC-LTE-EPC/CONF/"
 my_path_epc = "/usr/local/etc/oai/"
 
 MME_CONF_FILENAME = "/usr/local/etc/oai/mme.conf"
 SPGW_CONF_FILENAME = "/usr/local/etc/oai/spgw.conf"
-ENB_CONF_FILENAME = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/enb.band7.tm1.usrpb210.conf"
-RRU_IF4p5_CONF_FILENAME = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/rru.band7.tm1.if4p5.usrpb210.conf"
-RRU_IF5_CONF_FILENAME = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/rru.band7.tm1.if5.usrpb210.conf"
-RCC_IF4p5_CONF_FILENAME = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/rcc.band7.tm1.if4p5.usrpb210.conf"
-RCC_IF5_CONF_FILENAME = "/home/wishful/openairinterface5g/targets/PROJECTS/GENERIC-LTE-EPC/CONF/rcc.band7.tm1.if5.usrpb210.conf"
+ENB_CONF_FILENAME = OPENAIR_5G_PATH+"targets/PROJECTS/GENERIC-LTE-EPC/CONF/enb.band7.tm1.usrpb210.conf"
+RRU_IF4p5_CONF_FILENAME = OPENAIR_5G_PATH+"targets/PROJECTS/GENERIC-LTE-EPC/CONF/rru.band7.tm1.if4p5.usrpb210.conf"
+RRU_IF5_CONF_FILENAME = OPENAIR_5G_PATH+"targets/PROJECTS/GENERIC-LTE-EPC/CONF/rru.band7.tm1.if5.usrpb210.conf"
+RCC_IF4p5_CONF_FILENAME = OPENAIR_5G_PATH+"/targets/PROJECTS/GENERIC-LTE-EPC/CONF/rcc.band7.tm1.if4p5.usrpb210.conf"
+RCC_IF5_CONF_FILENAME = OPENAIR_5G_PATH+"targets/PROJECTS/GENERIC-LTE-EPC/CONF/rcc.band7.tm1.if5.usrpb210.conf"
 
 # Dictionary for the matching the value to the relative SET/GET functions of NET_UPI
 param_key_functions_dict = {
@@ -234,6 +236,14 @@ def UE_attach():
 def UE_detach():
     return
 
+
+#CHECK if the environmental variable is properly set
+def check_environment_variable():
+    if "OPENAIR_5G_PATH" in os.environ:
+        return true
+    print("Please set the environmental variable OPENAIR_5G_PATH with the path to the openairinterface root folder.")
+    return false
+
 # SET FUNCTIONS of NET_UPI
 def set_generic(filename, key, value):
     # for setting the number of eNB served by the same MME.
@@ -246,11 +256,11 @@ def set_generic(filename, key, value):
         return 1
     line = f_1.readline()
     ## If the file is not empty keep reading line one at a time till the file is empty
-    trovato = False
+    check_find = False
     while line:
         finded = line.find(key)
         if finded != -1:
-            trovato = True
+            check_find = True
             newline = key + " = " + value + ";"
             splits = line.split('#', 1)
             if (len(splits) > 1):
@@ -263,7 +273,7 @@ def set_generic(filename, key, value):
     f_2.close()
     remove(conf_path_1)
     move(conf_path_1, conf_path_2)
-    if trovato == False:
+    if check_find  == False:
         return 1
     return 0
 
@@ -286,18 +296,26 @@ def get_generic(filename, key):
     return
 
 def set_mme_realm(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "REALM"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_served_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MAXENB"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_served_ue(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MAXUE"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_tai_list(mcc, mnc, tac):
+    if not check_environment_variable():
+        return
     # for setting the TAI list in the MME.
     conf_path_1 = my_path_epc + "/mme.conf"
     conf_path_2 = my_path_epc + "/mme_new.conf"
@@ -308,12 +326,12 @@ def set_mme_tai_list(mcc, mnc, tac):
         return 1
     line = f_1.readline()
     ## If the file is not empty keep reading line one at a time till the file is empty
-    trovato = False
+    check_find = False
     while line:
         finded = line.find("    TAI_LIST")
         f_2.write(line)
         if finded != -1:
-            trovato = True
+            check_find = True
             line1 = f_1.readline()
             while line1.find(");") == -1:
                 f_2.write(
@@ -326,11 +344,13 @@ def set_mme_tai_list(mcc, mnc, tac):
     f_2.close()
     remove(conf_path_1)
     move(conf_path_1, conf_path_2)
-    if trovato == False:
+    if check_find  == False:
         return 1
     return 0
 
 def set_mme_gummei_list(mcc, mnc, mme_gid, mme_code)
+    if not check_environment_variable():
+        return
     # for setting the GUMMEI list in the MME.
     conf_path_1 = my_path_epc + "/mme.conf"
     conf_path_2 = my_path_epc + "/mme_new.conf"
@@ -342,12 +362,12 @@ def set_mme_gummei_list(mcc, mnc, mme_gid, mme_code)
     ## Read the first line
     line = f_1.readline()
     ## If the file is not empty keep reading line one at a time till the file is empty
-    trovato == False
+    check_find == False
     while line:
         f_2.write(line)
         finded = line.find("    GUMMEI_LIST = (")
         if finded != -1:
-            trovato = True
+            check_find = True
             line1 = f_1.readline()
             while line1.find(");") == -1:
                 f_2.write(
@@ -360,11 +380,13 @@ def set_mme_gummei_list(mcc, mnc, mme_gid, mme_code)
     f_2.close()
     remove(conf_path_1)
     move(conf_path_1, conf_path_2)
-    if trovato == False:
+    if check_find  == False:
         return 1
     return 0
 
 def set_enb_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND_1 = "eNB_name"
     TO_FIND_2 = "Active_eNBs"
     ret_1 = set_generic(ENB_CONF_FILENAME, TO_FIND_1, value + "LTE_Box")
@@ -373,30 +395,44 @@ def set_enb_name(value):
     return ret_1
 
 def set_enb_id(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_cell_type(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_tracking_area_code(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_mcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_country_code"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_mnc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_mnc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND_1 = "eNB_name"
     TO_FIND_2 = "Active_eNBs"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
@@ -411,6 +447,8 @@ def set_rru_name(value):
         return ret_1
 
 def set_rru_id(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -418,6 +456,8 @@ def set_rru_id(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_cell_type(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -425,6 +465,8 @@ def set_rru_cell_type(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_tracking_area_code(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -432,6 +474,8 @@ def set_rru_tracking_area_code(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
     def set_rru_mcc(value):
+        if not check_environment_variable():
+            return
         TO_FIND = "mobile_country_code"
         if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
             return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -439,6 +483,8 @@ def set_rru_tracking_area_code(value):
             return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_mnc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -446,6 +492,8 @@ def set_rru_mnc(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND_1 = "eNB_name"
     TO_FIND_2 = "Active_eNBs"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
@@ -460,6 +508,8 @@ def set_rcc_name(value):
         return ret_1
 
 def set_rcc_id(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value + "LTE_Box")
@@ -467,6 +517,8 @@ def set_rcc_id(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value + "LTE_Box")
 
 def set_rcc_cell_type(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -474,6 +526,8 @@ def set_rcc_cell_type(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_tracking_area_code(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -481,6 +535,8 @@ def set_rcc_tracking_area_code(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_mcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_country_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -489,6 +545,8 @@ def set_rcc_mcc(value):
     return
 
 def set_rcc_mnc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -496,6 +554,8 @@ def set_rcc_mnc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_fronthaul_transport_mode(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tr_preference"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -503,98 +563,140 @@ def set_fronthaul_transport_mode(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_name_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_INTERFACE_NAME_FOR_S1_MME"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_addr_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_IPV4_ADDRESS_FOR_S1_MME"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_name_s11(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_INTERFACE_NAME_FOR_S11_MME"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_mme_addr_s11(value):
+    if not check_environment_variable():
+        return
     TO_FIND = " MME_IPV4_ADDRESS_FOR_S11_MME"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
-set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
-
 def set_mme_port_s11(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_PORT_FOR_S11_MME"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_name_s11(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S11"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_addr_s11(value):
+    if not check_environment_variable():
+        return
     TO_FIND = " SGW_IPV4_ADDRESS_FOR_S11"
     return set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
-set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
-
 def set_sgw_name_s1u_s12_s4(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_addr_s1u_s12_s4(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_port_s1u_s12_s4(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_PORT_FOR_S1U_S12_S4_UP"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_name_s5_s8(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S5_S8_UP"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_sgw_addr_s5_s8(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_ADDRESS_FOR_S5_S8_UP"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_pgw_name_s5_s8(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "PGW_INTERFACE_NAME_FOR_S5_S8"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_pgw_name_sgi(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "PGW_INTERFACE_NAME_FOR_SGI"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_ue_ip_addr_pool(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "IPV4_LIST"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_default_dns_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "DEFAULT_DNS_IPV4_ADDRESS"
     return set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_mme_ip_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mme_ip_address"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
-def set_enb_name_s1(value)
+def set_enb_name_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1_MME"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_enb_addr_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1_MME"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
-def set_enb_name_s1u(value)
+def set_enb_name_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1U"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
-def set_enb_addr_s1u(value)
+def set_enb_addr_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1U"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
-def set_enb_port_s1u(value)
+def set_enb_port_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_PORT_FOR_S1U"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_local_if_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -602,6 +704,8 @@ def set_rru_local_if_name(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_local_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -609,6 +713,8 @@ def set_rru_local_addr(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_local_if_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -616,6 +722,8 @@ def set_rru_local_if_name(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_local_port(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -623,6 +731,8 @@ def set_rru_local_port(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_remote_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -630,6 +740,8 @@ def set_rru_remote_addr(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rru_remote_port(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -637,13 +749,17 @@ def set_rru_remote_port(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_mme_ip_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "mme_ip_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
     elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
-def set_rcc_name_s1(value)
+def set_rcc_name_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1_MME"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -651,27 +767,35 @@ def set_rcc_name_s1(value)
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_addr_s1(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1_MME"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
     elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
-def set_rcc_name_s1u(value)
+def set_rcc_name_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
     elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
-def set_rcc_addr_s1u(value)
+def set_rcc_addr_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
     elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
-def set_rcc_port_s1u(value)
+def set_rcc_port_s1u(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_PORT_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -679,6 +803,8 @@ def set_rcc_port_s1u(value)
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_local_if_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -686,6 +812,8 @@ def set_rcc_local_if_name(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_local_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -693,6 +821,8 @@ def set_rcc_local_addr(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_local_if_name(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -700,6 +830,8 @@ def set_rcc_local_if_name(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_local_port(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "local_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -707,6 +839,8 @@ def set_rcc_local_port(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_remote_addr(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -714,6 +848,8 @@ def set_rcc_remote_addr(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rcc_remote_port(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -722,38 +858,56 @@ def set_rcc_remote_port(value):
 
 # SET FUNCTIONS OF RADIO UPI
 def set_pucch_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_pusch_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_rx_gain_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_gain_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_bandwidth_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_channel_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_mode_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_ul_freq_offset_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offset"
     return set_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def set_pucch_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -761,6 +915,8 @@ def set_pucch_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_pusch_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -768,6 +924,8 @@ def set_pusch_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rx_gain_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -775,6 +933,8 @@ def set_rx_gain_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_gain_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -782,6 +942,8 @@ def set_tx_gain_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_bandwidth_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -789,6 +951,8 @@ def set_tx_bandwidth_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_channel_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -796,6 +960,8 @@ def set_tx_channel_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_mode_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -803,6 +969,8 @@ def set_tx_mode_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_ul_freq_offset_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offset"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -810,6 +978,8 @@ def set_ul_freq_offset_rcc(value):
         return set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_pucch_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -817,6 +987,8 @@ def set_pucch_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_pusch_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -824,6 +996,8 @@ def set_pusch_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_rx_gain_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -831,6 +1005,8 @@ def set_rx_gain_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_gain_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -838,6 +1014,8 @@ def set_tx_gain_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_bandwidth_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -845,6 +1023,8 @@ def set_tx_bandwidth_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_channel_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -852,6 +1032,8 @@ def set_tx_channel_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_tx_mode_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -859,6 +1041,8 @@ def set_tx_mode_rru(value):
         return set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def set_ul_freq_offset_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offset"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -867,18 +1051,26 @@ def set_ul_freq_offset_rru(value):
 
 # GET FUNCTIONS OF NET UPI
 def get_mme_realm():
+    if not check_environment_variable():
+        return
     TO_FIND = "REALM"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_served_enb():
+    if not check_environment_variable():
+        return
     TO_FIND = "MAXENB"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_served_ue():
+    if not check_environment_variable():
+        return
     TO_FIND = "MAXUE"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_tai_list():
+    if not check_environment_variable():
+        return
     # for getting the TAI list in the MME.
     conf_path_1 = my_path_epc + "/mme.conf"
     conf_path_2 = my_path_epc + "/mme_new.conf"
@@ -904,7 +1096,9 @@ def get_mme_tai_list():
     move(conf_path_1, conf_path_2)
     return
 
-def get_mme_gummei_list()
+def get_mme_gummei_list():
+    if not check_environment_variable():
+        return
     # for getting the GUMMEI list in the MME.
     conf_path_1 = my_path_epc + "/mme.conf"
     conf_path_2 = my_path_epc + "/mme_new.conf"
@@ -932,34 +1126,44 @@ def get_mme_gummei_list()
     return
 
 def get_enb_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_name"
     return get_generic(ENB_CONF_FILENAME, TO_FIND_1)
 
 def get_enb_id():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_cell_type():
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_tracking_area_code():
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_mcc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_country_code"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_mnc():
-    TO_FIND = "mobile_network_code"
-    return get_generic(ENB_CONF_FILENAME, TO_FIND)
-
-def get_enb_mnc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_rru_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -967,6 +1171,8 @@ def get_rru_name():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_id():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -974,6 +1180,8 @@ def get_rru_id():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_cell_type():
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -981,6 +1189,8 @@ def get_rru_cell_type():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_tracking_area_code():
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -988,6 +1198,8 @@ def get_rru_tracking_area_code():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_mcc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_country_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -995,6 +1207,8 @@ def get_rru_mcc():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_mnc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1002,6 +1216,8 @@ def get_rru_mnc():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rrc_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1009,6 +1225,8 @@ def get_rrc_name():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rrc_id():
+    if not check_environment_variable():
+        return
     TO_FIND = "eNB_ID"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1016,6 +1234,8 @@ def get_rrc_id():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_cell_type():
+    if not check_environment_variable():
+        return
     TO_FIND = "cell_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1023,6 +1243,8 @@ def get_rcc_cell_type():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_tracking_area_code():
+    if not check_environment_variable():
+        return
     TO_FIND = "tracking_area_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1030,6 +1252,8 @@ def get_rcc_tracking_area_code():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_mcc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_country_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1037,6 +1261,8 @@ def get_rcc_mcc():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_mnc():
+    if not check_environment_variable():
+        return
     TO_FIND = "mobile_network_code"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1044,6 +1270,8 @@ def get_rcc_mnc():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_fronthaul_transport_mode():
+    if not check_environment_variable():
+        return
     TO_FIND = "tr_preference"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1053,94 +1281,140 @@ def get_fronthaul_transport_mode():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_mme_name_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_INTERFACE_NAME_FOR_S1_MME"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_addr_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_IPV4_ADDRESS_FOR_S1_MME"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_name_s11():
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_INTERFACE_NAME_FOR_S11_MME"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_addr_s11():
+    if not check_environment_variable():
+        return
     TO_FIND = " MME_IPV4_ADDRESS_FOR_S11_MME"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_mme_port_s11():
+    if not check_environment_variable():
+        return
     TO_FIND = "MME_PORT_FOR_S11_MME"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_sgw_name_s11():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S11"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_sgw_addr_s11():
+    if not check_environment_variable():
+        return
     TO_FIND = " SGW_IPV4_ADDRESS_FOR_S11"
     return get_generic(MME_CONF_FILENAME, TO_FIND)
 
 def get_sgw_name_s1u_s12_s4():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_sgw_addr_s1u_s12_s4():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_sgw_port_s1u_s12_s4():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_PORT_FOR_S1U_S12_S4_UP"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_sgw_name_s5_s8():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_INTERFACE_NAME_FOR_S5_S8_UP"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_sgw_addr_s5_s8():
+    if not check_environment_variable():
+        return
     TO_FIND = "SGW_IPV4_ADDRESS_FOR_S5_S8_UP"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_pgw_name_s5_s8():
+    if not check_environment_variable():
+        return
     TO_FIND = "PGW_INTERFACE_NAME_FOR_S5_S8"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_pgw_name_sgi():
+    if not check_environment_variable():
+        return
     TO_FIND = "PGW_INTERFACE_NAME_FOR_SGI"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_ue_ip_addr_pool():
+    if not check_environment_variable():
+        return
     TO_FIND = "IPV4_LIST"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_default_dns_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "DEFAULT_DNS_IPV4_ADDRESS"
     return get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
 def get_enb_mme_ip_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "mme_ip_address"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_name_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1_MME"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_addr_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1_MME"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_name_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1U"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_addr_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1U"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_enb_port_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_PORT_FOR_S1U"
     return get_generic(ENB_CONF_FILENAME, TO_FIND)
 
 def get_rru_local_if_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1148,6 +1422,8 @@ def get_rru_local_if_name():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_local_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1155,6 +1431,8 @@ def get_rru_local_addr():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_local_if_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1162,6 +1440,8 @@ def get_rru_local_if_name():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_local_port():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1169,6 +1449,8 @@ def get_rru_local_port():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_remote_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1176,6 +1458,8 @@ def get_rru_remote_addr():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rru_remote_port():
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1183,6 +1467,8 @@ def get_rru_remote_port():
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_mme_ip_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "mme_ip_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1190,6 +1476,8 @@ def get_rcc_mme_ip_addr():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_name_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1_MME"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1197,6 +1485,8 @@ def get_rcc_name_s1():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_addr_s1():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1_MME"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1204,6 +1494,8 @@ def get_rcc_addr_s1():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_name_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_INTERFACE_NAME_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1211,6 +1503,8 @@ def get_rcc_name_s1u():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_addr_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_IPV4_ADDRESS_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1218,6 +1512,8 @@ def get_rcc_addr_s1u():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_port_s1u():
+    if not check_environment_variable():
+        return
     TO_FIND = "ENB_PORT_FOR_S1U"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1225,6 +1521,8 @@ def get_rcc_port_s1u():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_local_if_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1232,6 +1530,8 @@ def get_rcc_local_if_name():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_local_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1239,6 +1539,8 @@ def get_rcc_local_addr():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_local_if_name():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_if_name"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1246,6 +1548,8 @@ def get_rcc_local_if_name():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_local_port():
+    if not check_environment_variable():
+        return
     TO_FIND = "local_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1253,6 +1557,8 @@ def get_rcc_local_port():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_remote_addr():
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_address"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1260,6 +1566,8 @@ def get_rcc_remote_addr():
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND)
 
 def get_rcc_remote_port():
+    if not check_environment_variable():
+        return
     TO_FIND = "remote_port"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND)
@@ -1268,38 +1576,56 @@ def get_rcc_remote_port():
 
 #T FUNCTIONS OF RADIO_UPI
 def get_pucch_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_pusch_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_rx_gain_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_gain_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_bandwidth_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_channel_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_mode_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_ul_freq_offget_enb(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offget"
     return get_generic(ENB_CONF_FILENAME, TO_FIND, value)
 
 def get_pucch_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1307,6 +1633,8 @@ def get_pucch_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_pusch_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1314,6 +1642,8 @@ def get_pusch_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_rx_gain_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1321,6 +1651,8 @@ def get_rx_gain_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_gain_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1328,6 +1660,8 @@ def get_tx_gain_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_bandwidth_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1335,6 +1669,8 @@ def get_tx_bandwidth_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_channel_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1342,6 +1678,8 @@ def get_tx_channel_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_mode_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1349,6 +1687,8 @@ def get_tx_mode_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_ul_freq_offget_rcc(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offget"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RCC_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1356,6 +1696,8 @@ def get_ul_freq_offget_rcc(value):
         return get_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_pucch_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pucch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1363,6 +1705,8 @@ def get_pucch_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_pusch_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "pusch_p0_Nominal"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1370,6 +1714,8 @@ def get_pusch_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_rx_gain_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "rx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1377,6 +1723,8 @@ def get_rx_gain_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_gain_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "tx_gain"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1384,6 +1732,8 @@ def get_tx_gain_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_bandwidth_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "N_RB_DL"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1391,6 +1741,8 @@ def get_tx_bandwidth_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_channel_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "downlink_frequency"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1398,6 +1750,8 @@ def get_tx_channel_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_tx_mode_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "frame_type"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
@@ -1405,6 +1759,8 @@ def get_tx_mode_rru(value):
         return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
 def get_ul_freq_offset_rru(value):
+    if not check_environment_variable():
+        return
     TO_FIND = "uplink_frequency_offset"
     if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
         return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
