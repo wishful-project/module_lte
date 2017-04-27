@@ -19,6 +19,7 @@ class Functional_split:
 
     def set_split_level(self, value):
         self.__current_functional_split = value
+        
         return 0
 
     def get_split_level(self):
