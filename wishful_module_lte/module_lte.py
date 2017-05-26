@@ -5,7 +5,6 @@ __email__ = "{francesco.giannone@santannapisa.it, domenico.garlisi@cnit.it}"
 
 import logging
 import subprocess
-from scapy.all import *
 from datetime import date, datetime
 import os
 from os import remove
@@ -22,7 +21,9 @@ from wishful_framework.classes import exceptions
 from functional_split import Functional_split
 
 #for setting the environmental variable with the path to the openairinterface root folder.
-OPENAIR_5G_PATH=os.environ['OAI_5G_PATH']
+#export OAI_5G_PATH=/home/fabrizio/oai/openairinterface5g
+#OPENAIR_5G_PATH=os.environ['OAI_5G_PATH']
+OPENAIR_5G_PATH='/home/fabrizio/oai/openairinterface5g'
 
 my_path_enb = OPENAIR_5G_PATH+"/targets/PROJECTS/GENERIC-LTE-EPC/CONF/"
 my_path_epc = "/usr/local/etc/oai/"
@@ -39,97 +40,6 @@ RCC_IF5_CONF_FILENAME = OPENAIR_5G_PATH+"targets/PROJECTS/GENERIC-LTE-EPC/CONF/r
 
 @wishful_module.build_module
 class LteModule(wishful_module.AgentModule):
-
-    # Dictionary for the matching the value to the relative SET/GET functions of NET_UPI
-    param_key_functions_dict = {
-        'MME_REALM': {'set': set_mme_realm, 'get': get_mme_realm},
-        'MME_SERVED_ENB': {'set': set_mme_served_enb, 'get': get_mme_served_enb},
-        'MME_SERVED_UE': {'set': set_mme_served_ue, 'get': get_mme_served_ue},
-        'MME_TAI_LIST': {'set': set_mme_tai_list, 'get': get_mme_tai_list},
-        'MME_GUMMEI_LIST': {'set': set_mme_gummei_list, 'get': get_mme_gummei_list},
-        'ENB_NAME': {'set' : set_enb_name 'get':get_enb_name},
-        'ENB_ID': {'set': set_enb_id, 'get': get_enb_id},
-        'ENB_CELL_TYPE': {'set': set_enb_cell_type, 'get': get_enb_cell_type},
-        'ENB_TRACKING_AREA_CODE': {'set': set_enb_tracking_area_code, 'get': get_enb_tracking_area_code},
-        'ENB_MCC': {'set': set_enb_mcc, 'get': get_enb_mcc},
-        'ENB_MNC': {'set': set_enb_mnc, 'get': get_enb_mnc},
-        'RRU_NAME': {'set': set_rru_name, 'get': get_rru_name},
-        'RRU_ID': {'set': set_rru_id, 'get': get_rru_id},
-        'RRU_CELL_TYPE': {'set': set_rru_cell_type, 'get': get_rru_cell_type},
-        'RRU_TRACKING_AREA_CODE': {'set': set_rru_tracking_area_code, 'get': get_rru_tracking_area_code},
-        'RRU_MCC': {'set': set_rru_mcc, 'get': get_rru_mcc},
-        'RRU_MNC': {'set': set_rru_mnc, 'get': get_rru_mnc},
-        'RCC_NAME': {'set': set_rcc_name, 'get': get_rcc_name},
-        'RCC_ID': {'set': set_rcc_id, 'get': get_rcc_id},
-        'RCC_CELL_TYPE': {'set': set_rcc_cell_type, 'get': get_rcc_cell_type},
-        'RCC_TRACKING_AREA_CODE': {'set': set_rcc_tracking_area_code, 'get': get_rcc_tracking_area_code},
-        'RCC_MCC': {'set': set_rcc_mcc, 'get': get_rcc_mcc},
-        'SPLIT_LEVEL': {'set': Functional_split.set_split_level, 'get': Functional_split.get_split_level},
-        'FRONTHAUL_TRANSPORT_MODE': {'set': set_fronthaul_transport_mode, 'get': get_fronthaul_transport_mode},
-        'mme_S1_name': {'set': set_mme_name_s1, 'get': get_mme_name_s1},
-        'mme_S1_addr': {'set': set_mme_addr_s1, 'get': get_mme_addr_s1},
-        'mme_S11_name': {'set': set_mme_name_s11, 'get': get_mme_name_s11},
-        'mme_S11_addr': {'set': set_mme_addr_s11, 'get': get_mme_addr_s11},
-        'mme_S11_port': {'set': set_mme_port_s11, 'get': get_mme_port_s11},
-        'sgw_S11_name': {'set': set_sgw_name_s11, 'get': get_sgw_name_s11},
-        'sgw_S11_addr': {'set': set_sgw_addr_s11, 'get': get_sgw_addr_s11},
-        'sgw_S1U_S12_S4_name': {'set': set_sgw_name_s1u_s12_s4,'get': get_sgw_name_s1u_s12_s4},
-        'sgw_S1U_S12_S4_addr': {'set': set_sgw_addr_s1u_s12_s4,'get': get_sgw_addr_s1u_s12_s4},
-        'sgw_S1U_S12_S4_port': {'set': set_sgw_port_s1u_s12_s4, 'get': get_sgw_port_s1u_s12_s4},
-        'sgw_S5_S8_name': {'set': set_sgw_name_s5_s8, 'get': get_sgw_name_s5_s8},
-        'sgw_S5_S8_addr': {'set': set_sgw_addr_s5_s8, 'get': get_sgw_addr_s5_s8},
-        'pgw_S5_S8_name': {'set': set_pgw_name_s5_s8, 'get': get_pgw_name_s5_s8},
-        'pgw_SGi_name': {'set': set_pgw_name_sgi, 'get': get_pgw_name_sgi},
-        'ip_address_pool': {'set': set_ue_ip_addr_pool, 'get': get_ue_ip_addr_pool},
-        'default_DNS_addr': {'set': set_default_dns_addr,'get': get_default_dns_addr},
-        'enb_mme_ip_addr': {'set': set_enb_mme_ip_addr, 'get': get_enb_mme_ip_addr},
-        'enb_name_s1': {'set': set_enb_name_s1, 'get': get_enb_name_s1},
-        'enb_s1_addr': {'set': set_enb_addr_s1, 'get': get_enb_addr_s1},
-        'enb_name_s1u': {'set': set_enb_name_s1u, 'get': get_enb_name_s1u},
-        'enb_addr_s1u': {'set': set_enb_addr_s1u, 'get': get_enb_addr_s1u},
-        'enb_port_s1u': {'set': set_enb_port_s1u, 'get': get_enb_port_s1u},
-        'rru_local_if_name': {'set': set_rru_local_if_name, 'get': get_rru_local_if_name},
-        'rru_local_addr': {'set': set_rru_local_addr, 'get': get_rru_local_addr},
-        'rru_local_port': {'set': set_rru_local_port, 'get': get_rru_local_port},
-        'rru_remote_addr': {'set': set_rru_remote_addr, 'get': get_rru_remote_addr},
-        'rru_remote_port': {'set': set_rru_remote_port, 'get': get_rru_remote_port},
-        'rcc_mme_ip_addr': {'set': set_rcc_mme_ip_addr, 'get': get_rcc_mme_ip_addr},
-        'rcc_name_s1': {'set': set_rcc_name_s1, 'get': get_rcc_name_s1},
-        'rcc_addr_s1': {'set': set_rcc_addr_s1, 'get': get_rcc_addr_s1},
-        'rcc_name_s1u': {'set': set_rcc_name_s1u, 'get': get_rcc_name_s1u},
-        'rcc_addr_s1u': {'set': set_rcc_addr_s1u, 'get': get_rcc_addr_s1u},
-        'rcc_port_s1u': {'set': set_rcc_port_s1u, 'get': get_rcc_port_s1u},
-        'rcc_local_if_name': {'set': set_rcc_local_if_name, 'get': get_rcc_local_if_name},
-        'rcc_local_address': {'set': set_rcc_local_addr, 'get': get_rcc_local_addr},
-        'rcc_local_port': {'set': set_rcc_local_port, 'get': get_rcc_local_port},
-        'rcc_remote_addr': {'set': set_rcc_remote_addr, 'get': get_rcc_remote_addr},
-        'rcc_remote_port': {'set': set_rcc_remote_port, 'get': get_rcc_remote_port},
-        'PUCCH_ENB': {'set': set_pucch_enb, 'get': get_pucch_enb},
-        'PUSCH_ENB': {'set': set_pusch_enb, 'get': get_pusch_enb},
-        'RX_GAIN_ENB': {'set': set_rx_gain_enb, 'get': get_rx_gain_enb},
-        'TX_GAIN_ENB': {'set': set_tx_gain_enb, 'get': get_tx_gain_enb},
-        'TX_BANDWIDTH_ENB': {'set': set_tx_bandwidth_enb, 'get': get_tx_bandwidth_enb},
-        'TX_CHANNEL_ENB': {'set': set_tx_channel_enb, 'get': get_tx_channel_enb},
-        'TX_MODE_ENB': {'set': set_tx_mode_enb, 'get': get_tx_mode_enb},
-        'UPLINK_FREQ_OFFSET_ENB': {'set': set_ul_freq_offset_enb, 'get': get_ul_freq_offset_enb},
-        'PUCCH_RCC': {'set': set_pucch_RCC, 'get': get_pucch_RCC},
-        'PUSCH_RCC': {'set': set_pusch_RCC, 'get': get_pusch_RCC},
-        'RX_GAIN_RCC': {'set': set_rx_gain_RCC, 'get': get_rx_gain_RCC},
-        'TX_GAIN_RCC': {'set': set_tx_gain_RCC, 'get': get_tx_gain_RCC},
-        'TX_BANDWIDTH_RCC': {'set': set_tx_bandwidth_RCC,'get': get_tx_bandwidth_RCC},
-        'TX_CHANNEL_RCC': {'set': set_tx_channel_RCC, 'get': get_tx_channel_RCC},
-        'TX_MODE_RCC': {'set': set_tx_mode_RCC, 'get': get_tx_mode_RCC},
-        'UPLINK_FREQ_OFFSET_RCC': {'set': set_ul_freq_offset_RCC, 'get': get_ul_freq_offset_RCC},
-        'PUCCH_RRU': {'set': set_pucch_RRU, 'get': get_pucch_RRU},
-        'PUSCH_RRU': {'set': set_pusch_RRU, 'get': get_pusch_RRU},
-        'RX_GAIN_RRU': {'set': set_rx_gain_RRU, 'get': get_rx_gain_RRU},
-        'TX_GAIN_RRU': {'set': set_tx_gain_RRU, 'get': get_tx_gain_RRU},
-        'TX_BANDWIDTH_RRU': {'set': set_tx_bandwidth_RRU, 'get': get_tx_bandwidth_RRU},
-        'TX_CHANNEL_RRU': {'set': set_tx_channel_RRU, 'get': get_tx_channel_RRU},
-        'TX_MODE_RRU': {'set': set_tx_mode_RRU, 'get': get_tx_mode_RRU},
-        'UPLINK_FREQ_OFFSET_RRU': {'set': set_ul_freq_offset_RRU, 'get': get_ul_freq_offset_RRU},
-    }
-
 
     def __init__(self):
         super(LteModule, self).__init__()
@@ -359,7 +269,7 @@ class LteModule(wishful_module.AgentModule):
             return 1
         return 0
 
-    def set_mme_gummei_list(self, mcc, mnc, mme_gid, mme_code)
+    def set_mme_gummei_list(self, mcc, mnc, mme_gid, mme_code):
         if not check_environment_variable():
             return
         # for setting the GUMMEI list in the MME.
@@ -1777,3 +1687,94 @@ class LteModule(wishful_module.AgentModule):
             return get_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
         elif current_functional_split == FUNCTIONAL_SLPIT_TYPES.FIVE:
             return get_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+
+    # Dictionary for the matching the value to the relative SET/GET functions of NET_UPI
+    param_key_functions_dict = {
+        'MME_REALM': {'set': set_mme_realm, 'get': get_mme_realm},
+        'MME_SERVED_ENB': {'set': set_mme_served_enb, 'get': get_mme_served_enb},
+        'MME_SERVED_UE': {'set': set_mme_served_ue, 'get': get_mme_served_ue},
+        'MME_TAI_LIST': {'set': set_mme_tai_list, 'get': get_mme_tai_list},
+        'MME_GUMMEI_LIST': {'set': set_mme_gummei_list, 'get': get_mme_gummei_list},
+        'ENB_NAME': {'set' : set_enb_name, 'get':get_enb_name},
+        'ENB_ID': {'set': set_enb_id, 'get': get_enb_id},
+        'ENB_CELL_TYPE': {'set': set_enb_cell_type, 'get': get_enb_cell_type},
+        'ENB_TRACKING_AREA_CODE': {'set': set_enb_tracking_area_code, 'get': get_enb_tracking_area_code},
+        'ENB_MCC': {'set': set_enb_mcc, 'get': get_enb_mcc},
+        'ENB_MNC': {'set': set_enb_mnc, 'get': get_enb_mnc},
+        'RRU_NAME': {'set': set_rru_name, 'get': get_rru_name},
+        'RRU_ID': {'set': set_rru_id, 'get': get_rru_id},
+        'RRU_CELL_TYPE': {'set': set_rru_cell_type, 'get': get_rru_cell_type},
+        'RRU_TRACKING_AREA_CODE': {'set': set_rru_tracking_area_code, 'get': get_rru_tracking_area_code},
+        #'RRU_MCC': {'set': set_rru_mcc, 'get': get_rru_mcc},
+        'RRU_MNC': {'set': set_rru_mnc, 'get': get_rru_mnc},
+        #'RCC_NAME': {'set': set_rcc_name, 'get': get_rcc_name},
+        #'RCC_ID': {'set': set_rcc_id, 'get': get_rcc_id},
+        'RCC_CELL_TYPE': {'set': set_rcc_cell_type, 'get': get_rcc_cell_type},
+        'RCC_TRACKING_AREA_CODE': {'set': set_rcc_tracking_area_code, 'get': get_rcc_tracking_area_code},
+        'RCC_MCC': {'set': set_rcc_mcc, 'get': get_rcc_mcc},
+        'SPLIT_LEVEL': {'set': Functional_split.set_split_level, 'get': Functional_split.get_split_level},
+        'FRONTHAUL_TRANSPORT_MODE': {'set': set_fronthaul_transport_mode, 'get': get_fronthaul_transport_mode},
+        'mme_S1_name': {'set': set_mme_name_s1, 'get': get_mme_name_s1},
+        'mme_S1_addr': {'set': set_mme_addr_s1, 'get': get_mme_addr_s1},
+        'mme_S11_name': {'set': set_mme_name_s11, 'get': get_mme_name_s11},
+        'mme_S11_addr': {'set': set_mme_addr_s11, 'get': get_mme_addr_s11},
+        'mme_S11_port': {'set': set_mme_port_s11, 'get': get_mme_port_s11},
+        'sgw_S11_name': {'set': set_sgw_name_s11, 'get': get_sgw_name_s11},
+        'sgw_S11_addr': {'set': set_sgw_addr_s11, 'get': get_sgw_addr_s11},
+        'sgw_S1U_S12_S4_name': {'set': set_sgw_name_s1u_s12_s4,'get': get_sgw_name_s1u_s12_s4},
+        'sgw_S1U_S12_S4_addr': {'set': set_sgw_addr_s1u_s12_s4,'get': get_sgw_addr_s1u_s12_s4},
+        'sgw_S1U_S12_S4_port': {'set': set_sgw_port_s1u_s12_s4, 'get': get_sgw_port_s1u_s12_s4},
+        'sgw_S5_S8_name': {'set': set_sgw_name_s5_s8, 'get': get_sgw_name_s5_s8},
+        'sgw_S5_S8_addr': {'set': set_sgw_addr_s5_s8, 'get': get_sgw_addr_s5_s8},
+        'pgw_S5_S8_name': {'set': set_pgw_name_s5_s8, 'get': get_pgw_name_s5_s8},
+        'pgw_SGi_name': {'set': set_pgw_name_sgi, 'get': get_pgw_name_sgi},
+        'ip_address_pool': {'set': set_ue_ip_addr_pool, 'get': get_ue_ip_addr_pool},
+        'default_DNS_addr': {'set': set_default_dns_addr,'get': get_default_dns_addr},
+        'enb_mme_ip_addr': {'set': set_enb_mme_ip_addr, 'get': get_enb_mme_ip_addr},
+        'enb_name_s1': {'set': set_enb_name_s1, 'get': get_enb_name_s1},
+        'enb_s1_addr': {'set': set_enb_addr_s1, 'get': get_enb_addr_s1},
+        'enb_name_s1u': {'set': set_enb_name_s1u, 'get': get_enb_name_s1u},
+        'enb_addr_s1u': {'set': set_enb_addr_s1u, 'get': get_enb_addr_s1u},
+        'enb_port_s1u': {'set': set_enb_port_s1u, 'get': get_enb_port_s1u},
+        'rru_local_if_name': {'set': set_rru_local_if_name, 'get': get_rru_local_if_name},
+        'rru_local_addr': {'set': set_rru_local_addr, 'get': get_rru_local_addr},
+        'rru_local_port': {'set': set_rru_local_port, 'get': get_rru_local_port},
+        'rru_remote_addr': {'set': set_rru_remote_addr, 'get': get_rru_remote_addr},
+        'rru_remote_port': {'set': set_rru_remote_port, 'get': get_rru_remote_port},
+        'rcc_mme_ip_addr': {'set': set_rcc_mme_ip_addr, 'get': get_rcc_mme_ip_addr},
+        'rcc_name_s1': {'set': set_rcc_name_s1, 'get': get_rcc_name_s1},
+        'rcc_addr_s1': {'set': set_rcc_addr_s1, 'get': get_rcc_addr_s1},
+        'rcc_name_s1u': {'set': set_rcc_name_s1u, 'get': get_rcc_name_s1u},
+        'rcc_addr_s1u': {'set': set_rcc_addr_s1u, 'get': get_rcc_addr_s1u},
+        'rcc_port_s1u': {'set': set_rcc_port_s1u, 'get': get_rcc_port_s1u},
+        'rcc_local_if_name': {'set': set_rcc_local_if_name, 'get': get_rcc_local_if_name},
+        'rcc_local_address': {'set': set_rcc_local_addr, 'get': get_rcc_local_addr},
+        'rcc_local_port': {'set': set_rcc_local_port, 'get': get_rcc_local_port},
+        'rcc_remote_addr': {'set': set_rcc_remote_addr, 'get': get_rcc_remote_addr},
+        'rcc_remote_port': {'set': set_rcc_remote_port, 'get': get_rcc_remote_port},
+        'PUCCH_ENB': {'set': set_pucch_enb, 'get': get_pucch_enb},
+        'PUSCH_ENB': {'set': set_pusch_enb, 'get': get_pusch_enb},
+        'RX_GAIN_ENB': {'set': set_rx_gain_enb, 'get': get_rx_gain_enb},
+        'TX_GAIN_ENB': {'set': set_tx_gain_enb, 'get': get_tx_gain_enb},
+        'TX_BANDWIDTH_ENB': {'set': set_tx_bandwidth_enb, 'get': get_tx_bandwidth_enb},
+        'TX_CHANNEL_ENB': {'set': set_tx_channel_enb, 'get': get_tx_channel_enb},
+        'TX_MODE_ENB': {'set': set_tx_mode_enb, 'get': get_tx_mode_enb},
+        #'UPLINK_FREQ_OFFSET_ENB': {'set': set_ul_freq_offset_enb, 'get': get_ul_freq_offset_enb},
+        #'PUCCH_RCC': {'set': set_pucch_RCC, 'get': get_pucch_RCC},
+        # 'PUSCH_RCC': {'set': set_pusch_RCC, 'get': get_pusch_RCC},
+        # 'RX_GAIN_RCC': {'set': set_rx_gain_RCC, 'get': get_rx_gain_RCC},
+        # 'TX_GAIN_RCC': {'set': set_tx_gain_RCC, 'get': get_tx_gain_RCC},
+        # 'TX_BANDWIDTH_RCC': {'set': set_tx_bandwidth_RCC,'get': get_tx_bandwidth_RCC},
+        # 'TX_CHANNEL_RCC': {'set': set_tx_channel_RCC, 'get': get_tx_channel_RCC},
+        # 'TX_MODE_RCC': {'set': set_tx_mode_RCC, 'get': get_tx_mode_RCC},
+        # 'UPLINK_FREQ_OFFSET_RCC': {'set': set_ul_freq_offset_RCC, 'get': get_ul_freq_offset_RCC},
+        # 'PUCCH_RRU': {'set': set_pucch_RRU, 'get': get_pucch_RRU},
+        # 'PUSCH_RRU': {'set': set_pusch_RRU, 'get': get_pusch_RRU},
+        # 'RX_GAIN_RRU': {'set': set_rx_gain_RRU, 'get': get_rx_gain_RRU},
+        # 'TX_GAIN_RRU': {'set': set_tx_gain_RRU, 'get': get_tx_gain_RRU},
+        # 'TX_BANDWIDTH_RRU': {'set': set_tx_bandwidth_RRU, 'get': get_tx_bandwidth_RRU},
+        # 'TX_CHANNEL_RRU': {'set': set_tx_channel_RRU, 'get': get_tx_channel_RRU},
+        # 'TX_MODE_RRU': {'set': set_tx_mode_RRU, 'get': get_tx_mode_RRU},
+        # 'UPLINK_FREQ_OFFSET_RRU': {'set': set_ul_freq_offset_RRU, 'get': get_ul_freq_offset_RRU},
+    }
