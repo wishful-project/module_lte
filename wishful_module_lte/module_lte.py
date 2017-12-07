@@ -185,37 +185,43 @@ class LteModule(wishful_module.AgentModule):
 
     @wishful_module.bind_function(upis.net.HSS_activation)
     def HSS_activation(self):
-        os.system('cd /root/openair-cn/scripts && ./run_hss')
+        cmd_1 = 'sudo /root/openair-cn/scripts/run_hss'
+        os.system(cmd_1)
         print("HSS_Activated")
         return
 
     @wishful_module.bind_function(upis.net.HSS_deactivation)
     def HSS_deactivation(self):
-        os.system('sudo pkill oai_hss')
+        cmd_1 = 'sudo pkill oai_hss'
+        os.system(cmd_1)
         print("HSS_Deactivated")
         return
 
     @wishful_module.bind_function(upis.net.MME_activation)
     def MME_activation(self):
-        os.system('cd /root/openair-cn/scripts && ./run_mme')
+        cmd_1 = 'sudo /root/openair-cn/scripts/run_mme'
+        os.system(cmd_1)
         print("MME Activated")
         return
 
     @wishful_module.bind_function(upis.net.MME_deactivation)
     def MME_deactivation(self):
-        os.system('sudo pkill mme')
+        cmd_1 = 'sudo pkill mme'
+        os.system(cmd_1)
         print("MME Dectivated")
         return
 
     @wishful_module.bind_function(upis.net.SPGW_activation)
     def SPGW_activation(self):
-        os.system('cd /root/openair-cn/scripts && ./run_spgw')
+        cmd_1 = 'sudo /root/openair-cn/scripts/run_spgw'
+        os.system(cmd_1)
         print("SPGW Activated")
         return
 
     @wishful_module.bind_function(upis.net.SPGW_deactivation)
     def SPGW_deactivation(self):
-        os.system('sudo pkill spgw')
+        cmd_1 = 'sudo pkill spgw'
+        os.system(cmd_1)
         print("SPGW Deactivated")
         return
         
@@ -223,92 +229,86 @@ class LteModule(wishful_module.AgentModule):
     def eNB_activation(self):
         cmd_1 = 'sudo -E /root/openairinterface5g/targets/bin/classic_eNB/lte-softmodem.Rel14 -O /usr/local/etc/oai/enb.band7.tm1.usrpb210.conf'
         os.system(cmd_1)
-        print("eNB Activated")
         return
 
     @wishful_module.bind_function(upis.net.eNB_deactivation)
     def eNB_deactivation(self):
-        os.system('sudo pkill lte-softmodem')
-        print("eNB Deactivated")
+        cmd_1 = 'sudo pkill lte-softmodem'
+        os.system(cmd_1)
         return
        
     @wishful_module.bind_function(upis.net.RRU_activation)
     def RRU_activation(self):
         cmd_1 = 'sudo -E /root/openairinterface5g/targets/bin/C-RAN/lte-softmodem.Rel14 -O /usr/local/etc/oai/rru.band7.tm1.usrpb210.conf'
         os.system(cmd_1)
-        print("RRU Activated")
         return
 
     @wishful_module.bind_function(upis.net.RRU_deactivation)
     def RRU_deactivation(self):
-        os.system('sudo pkill lte-softmodem')
-        print("RRU Deactivated")
+        cmd_1 = 'sudo pkill lte-softmodem'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RCC_activation)
     def RCC_activation(self):
-        print("RCC Activation")
         cmd_1 = 'sudo -E /root/openairinterface5g/targets/bin/lte-softmodem.Rel14 -O /usr/local/etc/oai/rcc.band7.tm1.usrpb210.conf'
         os.system(cmd_1)
-        print("RCC Activated")
         return
 
     @wishful_module.bind_function(upis.net.RCC_deactivation)
     def RCC_deactivation(self):
-        os.system('sudo pkill lte-softmodem')
-        print("RRU Deactivated")
+        cmd_1 = 'sudo pkill lte-softmodem'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RRU_container_activation)
     def RRU_container_activation(self):
-        os.system('sudo docker exec -d RRU1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rru.band7.tm1.conf')
-        print("Containerized RRU Activated")
+        cmd_1 = 'sudo docker exec -d RRU1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rru.band7.tm1.conf'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RRU_container_deactivation)
     def RRU_container_deactivation(self):
-        os.system('sudo docker exec -d RRU1 pkill -u root -f lte-softmodem.Rel14')
-        print("Containerized RRU Deactivated")
+        cmd_1 = 'sudo docker exec -d RRU1 pkill -u root -f lte-softmodem.Rel14'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RCC_container_activation)
     def RCC_container_activation(self):
-        os.system('sudo docker exec -d RCC1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rcc.band7.tm1.conf')
-        print("Containerized RCC Activated")
+        cmd_1 = 'sudo docker exec -d RCC1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rcc.band7.tm1.conf'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RCC_container_deactivation)
     def RCC_container_deactivation(self):
-        os.system('sudo docker exec -d RCC1 pkill -u root -f lte-softmodem.Rel14')
-        print("Containerized RCC Deactivated")
+        cmd_1 = 'sudo docker exec -d RCC1 pkill -u root -f lte-softmodem.Rel14'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.UE_activation)
     def UE_activation(self, central_freq, N_RB, tx_gain, rx_gain):
-        cmd_1 = 'sudo -E /root/openairinterface5g/targets/bin/lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s' %(central_freq, N_RB, tx_gain, rx_gain)
+    	cmd_1 = 'sudo sh -c "cd /root/openairinterface5g/targets/bin/; sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s"' %(central_freq, N_RB, tx_gain, rx_gain)
         os.system(cmd_1)
-        print("UE Activated")
-        return
+    	return
 
     @wishful_module.bind_function(upis.net.UE_deactivation)
     def UE_deactivation(self):
-        os.system('sudo pkill lte-softmodem')
-        print("UE Deactivated")
+        cmd_1 = 'sudo pkill lte-softmodem'
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.UE_attach)
     #UPI valid when a LTE dongle is used as UE. 
     def UE_attach(self, central_freq, N_RB, tx_gain, rx_gain):
-    	cmd_1 = 'cd /root/openairinterface5g/targets/bin/'
-		os.system(cmd_1)
-        cmd_2 = 'sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s' %(central_freq, N_RB, tx_gain, rx_gain)
-        os.system(cmd_2)
+        cmd_1 = 'sudo sh -c "cd /root/openairinterface5g/targets/bin/; sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s"' %(central_freq, N_RB, tx_gain, rx_gain)
+        os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.UE_detach)
     #UPI valid when a LTE dongle is used as UE
     def UE_detach(self):
-        os.system('sudo pkill lte-softmodem')
+        cmd_1 = 'sudo pkill lte-softmodem'
+        os.system(cmd_1)
         return
 
     #CHECK if the environmental variable is properly set
@@ -356,6 +356,7 @@ class LteModule(wishful_module.AgentModule):
             return 1
         return 0
 
+    # SET FUNCTIONS of NET_UPI
     def get_generic(self, filename, key):
         # for setting the number of eNB served by the same MME.
         conf_path_1 = filename
