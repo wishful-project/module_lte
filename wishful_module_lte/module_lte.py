@@ -20,6 +20,8 @@ import wishful_upis.lte.meta_net as net
 import wishful_framework as wishful_module
 from wishful_framework.classes import exceptions
 from functional_split import Functional_split
+from subprocess import check_output
+
 
 #for setting the environmental variable with the path to the openairinterface root folder.
 os.environ["OAI_5G_PATH"] = "/root/openairinterface5g/targets"
@@ -33,6 +35,7 @@ RRU_IF5_CONF_FILENAME = "/usr/local/etc/oai/rru.band7.tm1.if5.usrpb210.conf"
 RCC_CONF_FILENAME = "/usr/local/etc/oai/rcc.band7.tm1.usrpb210.conf"
 RCC_IF5_CONF_FILENAME = "/usr/local/etc/oai/rcc.band7.tm1.if5.usrpb210.conf"
 
+FAKE_CONF_FILENAME = "/usr/local/etc/oai/enb.band7.tm1.usrpb210_FAKE.conf"
 
 @wishful_module.build_module
 class LteModule(wishful_module.AgentModule):
@@ -43,29 +46,107 @@ class LteModule(wishful_module.AgentModule):
 
         # Dictionary for the matching the value to the relative SET/GET functions of NET_UPI
         self.param_key_functions_dict = {
+            'LTE_EPC_MCC' : {'set': self.set_mme_mcc, 'get': self.get_mme_mcc},
+            'LTE_EPC_MNC' : {'set': self.set_mme_mnc, 'get': self.get_mme_mnc},            
+            'LTE_EPC_OP' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_AMF' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_ENB_ADD' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_ENB_DEL' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_ENB_LIST' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_ADD' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_DEL' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_LIST' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_GROUP_ADD' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_GROUP_DEL' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_SUBSCRIBER_GROUP_LIST' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_RNTI' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_APN_ADD' : {'set': self.set_default_dns_addr, 'get': self.get_default_dns_addr},
+            'LTE_EPC_APN_DEL' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_APN_LIST' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_EPC_HSS_ADDRESS' : {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+
+            'LTE_ENB_NM': {'set': self.set_enb_name, 'get': self.get_enb_name},
+            'LTE_ENB_ID': {'set': self.set_enb_id, 'get': self.get_enb_id},
+            'LTE_ENB_CT': {'set': self.set_enb_cell_type, 'get': self.get_enb_cell_type},
+            'LTE_ENB_PLMN': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_TAC': {'set': self.set_enb_tracking_area_code, 'get': self.get_enb_tracking_area_code},
+            'LTE_ENB_DL_BW': {'set': self.set_tx_bandwidth_enb, 'get': self.get_tx_bandwidth_enb},
+            'LTE_ENB_UL_BW': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_DL_FREQ': {'set': self.set_tx_channel_enb, 'get': self.get_tx_channel_enb},
+            'LTE_ENB_UL_FREQ': {'set': self.set_ul_freq_offset_enb, 'get': self.get_ul_freq_offset_enb},
+            'LTE_ENB_FREQ_BAND': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_MME': {'set': self.set_enb_mme_ip_addr, 'get': self.get_enb_mme_ip_addr},
+            'LTE_ENB_PGW': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_SGW': {'set': self.set_enb_addr_s1u, 'get': self.get_enb_addr_s1u},
+            'LTE_ENB_PHY_CELL_ID': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_MCC': {'set': self.set_enb_mcc, 'get': self.get_enb_mcc},
+            'LTE_ENB_MNC': {'set': self.set_enb_mnc, 'get': self.get_enb_mnc},
+            'LTE_ENB_N_TX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_N_RX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_REF_SIG_POWER': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_ENB_TX_GAIN': {'set': self.set_tx_gain_enb, 'get': self.get_tx_gain_enb},
+            'LTE_ENB_RX_GAIN': {'set': self.set_rx_gain_enb, 'get': self.get_rx_gain_enb},
+            'LTE_ENB_DUPLEX_MODE': {'set': self.set_tx_mode_enb, 'get': self.get_tx_mode_enb},
+            'LTE_ENB_TDD_CONFIGURATION': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            
+            'LTE_RCC_NM': {'set': self.set_rcc_name, 'get': self.get_rcc_name},
+            'LTE_RCC_ID': {'set': self.set_rcc_id, 'get': self.get_rcc_id},
+            'LTE_RCC_CT': {'set': self.set_rcc_cell_type, 'get': self.get_rcc_cell_type},
+            'LTE_RCC_PLMN': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_TAC': {'set': self.set_rcc_tracking_area_code, 'get': self.get_rcc_tracking_area_code},
+            'LTE_RCC_DL_BW': {'set': self.set_tx_bandwidth_rcc, 'get': self.get_tx_bandwidth_rcc},
+            'LTE_RCC_UL_BW': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_DL_FREQ': {'set': self.set_tx_channel_rcc, 'get': self.get_tx_channel_rcc},
+            'LTE_RCC_UL_FREQ': {'set': self.set_ul_freq_offset_rcc, 'get': self.get_ul_freq_offset_rcc},
+            'LTE_RCC_FREQ_BAND': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_MME': {'set': self.set_rcc_mme_ip_addr, 'get': self.get_rcc_mme_ip_addr},
+            'LTE_RCC_PGW': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_SGW': {'set': self.set_rcc_addr_s1u, 'get': self.get_rcc_addr_s1u},
+            'LTE_RCC_FRONTHAUL_IF_NAME_LOCAL': {'set': self.set_rcc_local_if_name, 'get': self.get_rcc_local_if_name},
+            'LTE_RCC_FRONTHAUL_IP_ADDRESS_LOCAL': {'set': self.set_rcc_local_addr, 'get': self.get_rcc_local_addr},
+            'LTE_RCC_FRONTHAUL_PORT_LOCAL': {'set': self.set_rcc_local_port, 'get': self.get_rcc_local_port},
+            'LTE_RCC_FRONTHAUL_IP_ADDRESS_REMOTE': {'set': self.set_rcc_remote_addr, 'get': self.get_rcc_remote_addr},
+            'LTE_RCC_FRONTHAUL_PORT_REMOTE': {'set': self.set_rcc_remote_port, 'get': self.get_rcc_remote_port},
+            'LTE_RCC_MCC': {'set': self.set_rcc_mcc, 'get': self.get_rcc_mcc},
+            'LTE_RCC_MNC': {'set': self.set_rcc_mnc, 'get': self.get_rcc_mnc},
+            'LTE_RCC_N_TX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_N_RX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_REF_SIG_POWER': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RCC_TX_GAIN': {'set': self.set_tx_gain_rcc, 'get': self.get_tx_gain_rcc},
+            'LTE_RCC_RX_GAIN': {'set': self.set_rx_gain_rcc, 'get': self.get_rx_gain_rcc},
+            'LTE_RCC_DUPLEX_MODE': {'set': self.set_tx_mode_rcc, 'get': self.get_tx_mode_rcc},
+            'LTE_RCC_TDD_CONFIGURATION': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+
+            'LTE_RRU_NM': {'set': self.set_rru_name, 'get': self.get_rru_name},
+            'LTE_RRU_ID': {'set': self.set_rru_id, 'get': self.get_rru_id},
+            'LTE_RRU_CT': {'set': self.set_rru_cell_type, 'get': self.get_rru_cell_type},
+            'LTE_RRU_PLMN': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_TAC': {'set': self.set_rru_tracking_area_code, 'get': self.get_rru_tracking_area_code},
+            'LTE_RRU_DL_BW': {'set': self.set_tx_bandwidth_RRU, 'get': self.get_tx_bandwidth_RRU},
+            'LTE_RRU_UL_BW': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_DL_FREQ': {'set': self.set_tx_channel_RRU, 'get': self.get_tx_channel_RRU},
+            'LTE_RRU_UL_FREQ': {'set': self.set_ul_freq_offset_RRU, 'get': self.get_ul_freq_offset_RRU},
+            'LTE_RRU_FREQ_BAND': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_FRONTHAUL_IF_NAME_LOCAL': {'set': self.set_rru_local_if_name, 'get': self.get_rru_local_if_name},
+            'LTE_RRU_FRONTHAUL_IP_ADDRESS_LOCAL': {'set': self.set_rru_local_addr, 'get': self.get_rru_local_addr},
+            'LTE_RRU_FRONTHAUL_PORT_LOCAL': {'set': self.set_rru_local_port, 'get': self.get_rru_local_port},
+            'LTE_RRU_FRONTHAUL_IP_ADDRESS_REMOTE': {'set': self.set_rru_remote_addr, 'get': self.get_rru_remote_addr},
+            'LTE_RRU_FRONTHAUL_PORT_REMOTE': {'set': self.set_rru_remote_port, 'get': self.get_rru_remote_port},
+            'LTE_RRU_MCC': {'set': self.set_rru_mcc, 'get': self.get_rru_mcc},
+            'LTE_RRU_MNC': {'set': self.set_rru_mnc, 'get': self.get_rru_mnc},
+            'LTE_RRU_N_TX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_N_RX_ANT': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_REF_SIG_POWER': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+            'LTE_RRU_TX_GAIN': {'set': self.set_tx_gain_rru, 'get': self.get_tx_gain_rru},
+            'LTE_RRU_RX_GAIN': {'set': self.set_rx_gain_rru, 'get': self.get_rx_gain_rru},
+            'LTE_RRU_DUPLEX_MODE': {'set': self.set_tx_mode_rru, 'get': self.get_tx_mode_rru},
+            'LTE_RRU_TDD_CONFIGURATION': {'set': self.set_not_implemented, 'get': self.get_not_implemented},
+
             'MME_REALM': {'set': self.set_mme_realm, 'get': self.get_mme_realm},
             'MME_SERVED_ENB': {'set': self.set_mme_served_enb, 'get': self.get_mme_served_enb},
             'MME_SERVED_UE': {'set': self.set_mme_served_ue, 'get': self.get_mme_served_ue},
             'MME_TAI_LIST': {'set': self.set_mme_tai_list, 'get': self.get_mme_tai_list},
             'MME_GUMMEI_LIST': {'set': self.set_mme_gummei_list, 'get': self.get_mme_gummei_list},
-            'ENB_NAME': {'set': self.set_enb_name, 'get': self.get_enb_name},
-            'ENB_ID': {'set': self.set_enb_id, 'get': self.get_enb_id},
-            'ENB_CELL_TYPE': {'set': self.set_enb_cell_type, 'get': self.get_enb_cell_type},
-            'ENB_TRACKING_AREA_CODE': {'set': self.set_enb_tracking_area_code, 'get': self.get_enb_tracking_area_code},
-            'ENB_MCC': {'set': self.set_enb_mcc, 'get': self.get_enb_mcc},
-            'ENB_MNC': {'set': self.set_enb_mnc, 'get': self.get_enb_mnc},
-            'RRU_NAME': {'set': self.set_rru_name, 'get': self.get_rru_name},
-            'RRU_ID': {'set': self.set_rru_id, 'get': self.get_rru_id},
-            'RRU_CELL_TYPE': {'set': self.set_rru_cell_type, 'get': self.get_rru_cell_type},
-            'RRU_TRACKING_AREA_CODE': {'set': self.set_rru_tracking_area_code, 'get': self.get_rru_tracking_area_code},
-            'RRU_MCC': {'set': self.set_rru_mcc, 'get': self.get_rru_mcc},
-            'RRU_MNC': {'set': self.set_rru_mnc, 'get': self.get_rru_mnc},
-            'RCC_NAME': {'set': self.set_rcc_name, 'get': self.get_rcc_name},
-            'RCC_ID': {'set': self.set_rcc_id, 'get': self.get_rcc_id},
-            'RCC_CELL_TYPE': {'set': self.set_rcc_cell_type, 'get': self.get_rcc_cell_type},
-            'RCC_TRACKING_AREA_CODE': {'set': self.set_rcc_tracking_area_code, 'get': self.get_rcc_tracking_area_code},
-            'RCC_MCC': {'set': self.set_rcc_mcc, 'get': self.get_rcc_mcc},
-            'RCC_MNC': {'set': self.set_rcc_mnc, 'get': self.get_rcc_mnc},
             'SPLIT_LEVEL': {'set': Functional_split.set_split_level, 'get': Functional_split.get_split_level},
             'FRONTHAUL_TRANSPORT_MODE': {'set': self.set_fronthaul_transport_mode, 'get': self.get_fronthaul_transport_mode},
             'mme_S1_name': {'set': self.set_mme_name_s1, 'get': self.get_mme_name_s1},
@@ -82,56 +163,22 @@ class LteModule(wishful_module.AgentModule):
             'sgw_S5_S8_addr': {'set': self.set_sgw_addr_s5_s8, 'get': self.get_sgw_addr_s5_s8},
             'pgw_S5_S8_name': {'set': self.set_pgw_name_s5_s8, 'get': self.get_pgw_name_s5_s8},
             'pgw_SGi_name': {'set': self.set_pgw_name_sgi, 'get': self.get_pgw_name_sgi},
-            'UE_network_address_pool': {'set': self.UE_network_address_pool, 'get': self.UE_network_address_pool},
-            'default_DNS_addr': {'set': self.set_default_dns_addr, 'get': self.get_default_dns_addr},
-            'enb_mme_ip_addr': {'set': self.set_enb_mme_ip_addr, 'get': self.get_enb_mme_ip_addr},
+            'ip_address_pool': {'set': self.set_ue_ip_addr_pool, 'get': self.get_ue_ip_addr_pool},
             'enb_name_s1': {'set': self.set_enb_name_s1, 'get': self.get_enb_name_s1},
-            'enb_addr_s1': {'set': self.set_enb_addr_s1, 'get': self.get_enb_addr_s1},
+            'enb_s1_addr': {'set': self.set_enb_addr_s1, 'get': self.get_enb_addr_s1},
             'enb_name_s1u': {'set': self.set_enb_name_s1u, 'get': self.get_enb_name_s1u},
-            'enb_addr_s1u': {'set': self.set_enb_addr_s1u, 'get': self.get_enb_addr_s1u},
             'enb_port_s1u': {'set': self.set_enb_port_s1u, 'get': self.get_enb_port_s1u},
-            'rru_local_if_name': {'set': self.set_rru_local_if_name, 'get': self.get_rru_local_if_name},
-            'rru_local_addr': {'set': self.set_rru_local_addr, 'get': self.get_rru_local_addr},
-            'rru_local_port': {'set': self.set_rru_local_port, 'get': self.get_rru_local_port},
-            'rru_remote_addr': {'set': self.set_rru_remote_addr, 'get': self.get_rru_remote_addr},
-            'rru_remote_port': {'set': self.set_rru_remote_port, 'get': self.get_rru_remote_port},
-            'rcc_mme_ip_addr': {'set': self.set_rcc_mme_ip_addr, 'get': self.get_rcc_mme_ip_addr},
             'rcc_name_s1': {'set': self.set_rcc_name_s1, 'get': self.get_rcc_name_s1},
             'rcc_addr_s1': {'set': self.set_rcc_addr_s1, 'get': self.get_rcc_addr_s1},
             'rcc_name_s1u': {'set': self.set_rcc_name_s1u, 'get': self.get_rcc_name_s1u},
-            'rcc_addr_s1u': {'set': self.set_rcc_addr_s1u, 'get': self.get_rcc_addr_s1u},
             'rcc_port_s1u': {'set': self.set_rcc_port_s1u, 'get': self.get_rcc_port_s1u},
-            'rcc_local_if_name': {'set': self.set_rcc_local_if_name, 'get': self.get_rcc_local_if_name},
-            'rcc_local_address': {'set': self.set_rcc_local_addr, 'get': self.get_rcc_local_addr},
-            'rcc_local_port': {'set': self.set_rcc_local_port, 'get': self.get_rcc_local_port},
-            'rcc_remote_addr': {'set': self.set_rcc_remote_addr, 'get': self.get_rcc_remote_addr},
-            'rcc_remote_port': {'set': self.set_rcc_remote_port, 'get': self.get_rcc_remote_port},
             'PUCCH_ENB': {'set': self.set_pucch_enb, 'get': self.get_pucch_enb},
             'PUSCH_ENB': {'set': self.set_pusch_enb, 'get': self.get_pusch_enb},
-            'RX_GAIN_enb': {'set': self.set_rx_gain_enb, 'get': self.get_rx_gain_enb},
-            'TX_GAIN_enb': {'set': self.set_tx_gain_enb, 'get': self.get_tx_gain_enb},
-            'TX_BANDWIDTH_enb': {'set': self.set_tx_bandwidth_enb, 'get': self.get_tx_bandwidth_enb},
-            'TX_CHANNEL_enb': {'set': self.set_tx_channel_enb, 'get': self.get_tx_channel_enb},
-            'TX_MODE_enb': {'set': self.set_tx_mode_enb, 'get': self.get_tx_mode_enb},
-            'UPLINK_FREQ_OFFSET_ENB': {'set': self.set_ul_freq_offset_enb, 'get': self.get_ul_freq_offset_enb},
-            'PUCCH_RCC': {'set': self.set_pucch_RCC, 'get': self.get_pucch_RCC},
-            'PUSCH_RCC': {'set': self.set_pusch_RCC, 'get': self.get_pusch_RCC},
-            'RX_GAIN_RCC': {'set': self.set_rx_gain_RCC, 'get': self.get_rx_gain_RCC},
-            'TX_GAIN_RCC': {'set': self.set_tx_gain_RCC, 'get': self.get_tx_gain_RCC},
-            'TX_BANDWIDTH_RCC': {'set': self.set_tx_bandwidth_RCC,'get': self.get_tx_bandwidth_RCC},
-            'TX_CHANNEL_RCC': {'set': self.set_tx_channel_RCC, 'get': self.get_tx_channel_RCC},
-            'TX_MODE_RCC': {'set': self.set_tx_mode_RCC, 'get': self.get_tx_mode_RCC},
-            'UPLINK_FREQ_OFFSET_RCC': {'set': self.set_ul_freq_offset_RCC, 'get': self.get_ul_freq_offset_RCC},
-            'PUCCH_RRU': {'set': self.set_pucch_RRU, 'get': self.get_pucch_RRU},
-            'PUSCH_RRU': {'set': self.set_pusch_RRU, 'get': self.get_pusch_RRU},
-            'RX_GAIN_RRU': {'set': self.set_rx_gain_RRU, 'get': self.get_rx_gain_RRU},
-            'TX_GAIN_RRU': {'set': self.set_tx_gain_RRU, 'get': self.get_tx_gain_RRU},
-            'TX_BANDWIDTH_RRU': {'set': self.set_tx_bandwidth_RRU, 'get': self.get_tx_bandwidth_RRU},
-            'TX_CHANNEL_RRU': {'set': self.set_tx_channel_RRU, 'get': self.get_tx_channel_RRU},
-            'TX_MODE_RRU': {'set': self.set_tx_mode_RRU, 'get': self.get_tx_mode_RRU},
-            'UPLINK_FREQ_OFFSET_RRU': {'set': self.set_ul_freq_offset_RRU, 'get': self.get_ul_freq_offset_RRU},
+            'PUCCH_RCC': {'set': self.set_pucch_rcc, 'get': self.get_pucch_rcc},
+            'PUSCH_RCC': {'set': self.set_pusch_rcc, 'get': self.get_pusch_rcc},        
+            'PUCCH_RRU': {'set': self.set_pucch_rru, 'get': self.get_pucch_rru},
+            'PUSCH_RRU': {'set': self.set_pusch_rru, 'get': self.get_pusch_rru},
         }
-
 
     @wishful_module.bind_function(upis.net.set_parameters)
     def set_parameters(self, param_key_values_dict):
@@ -186,45 +233,39 @@ class LteModule(wishful_module.AgentModule):
 
     @wishful_module.bind_function(upis.net.HSS_activation)
     def HSS_activation(self):
-        cmd_1 = 'sudo /root/openair-cn/scripts/run_hss'
-        os.system(cmd_1)
-        print("HSS_Activated")
-        return
+    	cmd_1 = 'sudo /root/openair-cn/scripts/run_hss'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.HSS_deactivation)
     def HSS_deactivation(self):
-        cmd_1 = 'sudo pkill oai_hss'
-        os.system(cmd_1)
-        print("HSS_Deactivated")
-        return
+    	cmd_1 = 'sudo pkill oai_hss'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.MME_activation)
     def MME_activation(self):
-        cmd_1 = 'sudo /root/openair-cn/scripts/run_mme'
-        os.system(cmd_1)
-        print("MME Activated")
-        return
+    	cmd_1 = 'sudo /root/openair-cn/scripts/run_mme'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.MME_deactivation)
     def MME_deactivation(self):
-        cmd_1 = 'sudo pkill mme'
-        os.system(cmd_1)
-        print("MME Dectivated")
-        return
+    	cmd_1 = 'sudo pkill mme'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.SPGW_activation)
     def SPGW_activation(self):
-        cmd_1 = 'sudo /root/openair-cn/scripts/run_spgw'
-        os.system(cmd_1)
-        print("SPGW Activated")
-        return
+    	cmd_1 = 'sudo /root/openair-cn/scripts/run_spgw'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.SPGW_deactivation)
     def SPGW_deactivation(self):
-        cmd_1 = 'sudo pkill spgw'
-        os.system(cmd_1)
-        print("SPGW Deactivated")
-        return
+    	cmd_1 = 'sudo pkill spgw'
+    	os.system(cmd_1)
+    	return
         
     @wishful_module.bind_function(upis.net.eNB_activation)
     def eNB_activation(self):
@@ -264,52 +305,54 @@ class LteModule(wishful_module.AgentModule):
 
     @wishful_module.bind_function(upis.net.RRU_container_activation)
     def RRU_container_activation(self):
-        cmd_1 = 'sudo docker exec -d RRU1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rru.band7.tm1.conf'
+        cmd_1 ='sudo docker exec -d RRU1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O usr/local/etc/oai/rru.band7.tm1.usrpb210.conf'
         os.system(cmd_1)
         return
 
     @wishful_module.bind_function(upis.net.RRU_container_deactivation)
     def RRU_container_deactivation(self):
         cmd_1 = 'sudo docker exec -d RRU1 pkill -u root -f lte-softmodem.Rel14'
-        os.system(cmd_1)
-        return
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.RCC_container_activation)
     def RCC_container_activation(self):
-        cmd_1 = 'sudo docker exec -d RCC1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O ../PROJECTS/GENERIC-LTE-EPC/CONF/containers/rcc.band7.tm1.conf'
-        os.system(cmd_1)
-        return
+        cmd_1 = 'sudo docker exec -d RCC1 ./openairinterface5g/targets/bin/lte-softmodem.Rel14 -O usr/local/etc/oai/rcc.band7.tm1.usrpb210.conf'
+    	os.system(cmd_1)
+    	return
 
     @wishful_module.bind_function(upis.net.RCC_container_deactivation)
     def RCC_container_deactivation(self):
-        cmd_1 = 'sudo docker exec -d RCC1 pkill -u root -f lte-softmodem.Rel14'
+    	cmd_1 = 'sudo docker exec -d RCC1 pkill -u root -f lte-softmodem.Rel14'
         os.system(cmd_1)
-        return
+    	return
 
     @wishful_module.bind_function(upis.net.UE_activation)
     def UE_activation(self, central_freq, N_RB, tx_gain, rx_gain):
-    	cmd_1 = 'sudo sh -c "cd /root/openairinterface5g/targets/bin/; sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s"' %(central_freq, N_RB, tx_gain, rx_gain)
-        os.system(cmd_1)
+        cmd_1 = 'sudo sh -c "cd /root/openairinterface5g/cmake_targets/tools/; sudo ./init_nas_s1 UE"'
+    	os.system(cmd_1)
+        cmd_2 = 'sudo sh -c "cd /root/openairinterface5g/targets/bin/; sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %s -r %s --ue-txgain %s --ue-rxgain %s"'
+    	os.system(cmd_2 %(central_freq, N_RB, tx_gain, rx_gain))
     	return
 
     @wishful_module.bind_function(upis.net.UE_deactivation)
     def UE_deactivation(self):
-        cmd_1 = 'sudo pkill lte-softmodem'
-        os.system(cmd_1)
+        os.system('sudo pkill lte-softmodem')
         return
 
     @wishful_module.bind_function(upis.net.UE_attach)
     #UPI valid when a LTE dongle is used as UE. 
     def UE_attach(self, central_freq, N_RB, tx_gain, rx_gain):
-        cmd_1 = 'sudo sh -c "cd /root/openairinterface5g/targets/bin/; sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s"' %(central_freq, N_RB, tx_gain, rx_gain)
-        os.system(cmd_1)
-        return
+    	cmd_1 = 'cd /root/openairinterface5g/targets/bin/'
+    	os.system(cmd_1)
+    	cmd_2 = 'sudo -E ./lte-softmodem.Rel14 -U --ue-scan-carrier -C %sL -r %s --ue-txgain %s --ue-rxgain %s' %(central_freq, N_RB, tx_gain, rx_gain)
+    	os.system(cmd_2)
+    	return
 
     @wishful_module.bind_function(upis.net.UE_detach)
     #UPI valid when a LTE dongle is used as UE
     def UE_detach(self):
-        cmd_1 = 'sudo pkill lte-softmodem'
-        os.system(cmd_1)
+        os.system('sudo pkill lte-softmodem')
         return
 
     #CHECK if the environmental variable is properly set
@@ -322,7 +365,6 @@ class LteModule(wishful_module.AgentModule):
     # SET FUNCTIONS of NET_UPI
     def set_generic(self, filename, key, value):
         # for setting the number of eNB served by the same MME.
-        #track_name = filename
         conf_path_1 = filename
         conf_path_2 = filename + "_temp"
         try:
@@ -357,11 +399,15 @@ class LteModule(wishful_module.AgentModule):
             return 1
         return 0
 
-    # SET FUNCTIONS of NET_UPI
     def get_generic(self, filename, key):
         # for setting the number of eNB served by the same MME.
         conf_path_1 = filename
-        f_1 = open(conf_path_1)
+        try:
+            f_1 = open(conf_path_1)
+        except (Exception) as err:
+            print("exception", err)
+            print("Error: unable to open configuration file")
+            return 1
         line = f_1.readline()
         ## If the file is not empty keep reading line one at a time till the file is empty
         while line:
@@ -375,6 +421,22 @@ class LteModule(wishful_module.AgentModule):
                     return value
         f_1.close()
         return
+
+    def set_not_implemented(self, value):
+        print("The parameter %s is not consider in OAI implementation...No changes will be made!!!" %value)
+        return
+
+    def set_mme_mcc(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "MCC"
+        return self.set_generic(MME_CONF_FILENAME, TO_FIND, value)
+
+    def set_mme_mnc(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "MNC"
+        return self.set_generic(MME_CONF_FILENAME, TO_FIND, value)
 
     def set_mme_realm(self, value):
         if not self.check_environment_variable():
@@ -548,14 +610,14 @@ class LteModule(wishful_module.AgentModule):
         elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
             return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
-        def set_rru_mcc(self, value):
-            if not self.check_environment_variable():
-                return
-            TO_FIND = "mobile_country_code"
+    def set_rru_mcc(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "mobile_country_code"
             if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-                return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-            elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-                return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
     def set_rru_mnc(self, value):
         if not self.check_environment_variable():
@@ -721,7 +783,7 @@ class LteModule(wishful_module.AgentModule):
         TO_FIND = "PGW_INTERFACE_NAME_FOR_SGI"
         return self.set_generic(SPGW_CONF_FILENAME, TO_FIND, value)
 
-    def set_UE_network_address_pool(self, value):
+    def set_ue_ip_addr_pool(self, value):
         if not self.check_environment_variable():
             return
         TO_FIND = "IPV4_LIST"
@@ -768,51 +830,6 @@ class LteModule(wishful_module.AgentModule):
             return
         TO_FIND = "ENB_PORT_FOR_S1U"
         return self.set_generic(ENB_CONF_FILENAME, TO_FIND, value)
-
-    def set_rru_local_if_name(self, value):
-        if not self.check_environment_variable():
-            return
-        TO_FIND = "local_if_name"
-        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
-
-    def set_rru_local_addr(self, value):
-        if not self.check_environment_variable():
-            return
-        TO_FIND = "local_address"
-        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
-
-    def set_rru_local_port(self, value):
-        if not self.check_environment_variable():
-            return
-        TO_FIND = "local_port"
-        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
-
-    def set_rru_remote_addr(self, value):
-        if not self.check_environment_variable():
-            return
-        TO_FIND = "remote_address"
-        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
-
-    def set_rru_remote_port(self, value):
-        if not self.check_environment_variable():
-            return
-        TO_FIND = "remote_port"
-        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
-            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
-        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
-            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
     def set_rcc_mme_ip_addr(self, value):
         if not self.check_environment_variable():
@@ -913,7 +930,52 @@ class LteModule(wishful_module.AgentModule):
         elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
             return self.set_generic(RCC_IF5_CONF_FILENAME, TO_FIND, value)
 
-    # SET FUNCTIONS OF RADIO UPI
+    def set_rru_local_if_name(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "local_if_name"
+        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+    def set_rru_local_addr(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "local_address"
+        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+    def set_rru_local_port(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "local_port"
+        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+    def set_rru_remote_addr(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "remote_address"
+        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+    def set_rru_remote_port(self, value):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "remote_port"
+        if Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FOURpFIVE:
+            return self.set_generic(RRU_IF4p5_CONF_FILENAME, TO_FIND, value)
+        elif Functional_split.get_split_level() == Functional_split.FUNCTIONAL_SPLIT_TYPES.FIVE:
+            return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
+
+        # SET FUNCTIONS OF RADIO UPI
     def set_pucch_enb(self, value):
         if not self.check_environment_variable():
             return
@@ -1107,6 +1169,22 @@ class LteModule(wishful_module.AgentModule):
             return self.set_generic(RRU_IF5_CONF_FILENAME, TO_FIND, value)
 
     # GET FUNCTIONS OF NET UPI
+    def get_not_implemented(self, value):
+        print("The inserted parameter is not consider in OAI implementation")
+        return
+
+    def get_mme_mcc(self):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "MCC"
+        return self.get_generic(MME_CONF_FILENAME, TO_FIND)
+
+    def get_mme_mcc(self):
+        if not self.check_environment_variable():
+            return
+        TO_FIND = "MNC"
+        return self.get_generic(MME_CONF_FILENAME, TO_FIND)
+
     def get_mme_realm(self):
         if not self.check_environment_variable():
             return
@@ -1421,7 +1499,7 @@ class LteModule(wishful_module.AgentModule):
         TO_FIND = "PGW_INTERFACE_NAME_FOR_SGI"
         return self.get_generic(SPGW_CONF_FILENAME, TO_FIND)
 
-    def get_UE_network_address_pool(self):
+    def get_ue_ip_addr_pool(self):
         if not self.check_environment_variable():
             return
         TO_FIND = "IPV4_LIST"
